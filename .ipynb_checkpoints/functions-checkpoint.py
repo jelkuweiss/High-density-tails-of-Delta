@@ -30,7 +30,7 @@ def derivative_of_inverse_of_approximate_collapse_alex(delta):
 def top_hat_filter_in_fourier_space(x):
     return 3*( (np.sin(x)/np.power(x,3)) - (np.cos(x)/np.power(x,2)) )
 
-def sigma_from_power_spectrum(k,P,R):
+def sigma_from_linear_pk(k,P,R):
     integrand = (1/(2*(pi**2))) * P * np.square(k) * np.square(top_hat_filter_in_fourier_space(k*R))
     
     return np.sqrt(integrate.simpson(integrand,x=k))
