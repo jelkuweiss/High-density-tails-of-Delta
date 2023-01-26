@@ -1,3 +1,3 @@
 # High-density-tails-of-Delta
 
-Testing pushing commands for server
+A messy repository to archive the function that we are using.
