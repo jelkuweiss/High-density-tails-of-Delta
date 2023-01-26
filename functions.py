@@ -39,40 +39,43 @@ def sigma_from_power_spectrum(k,P,R):
 
 ## Valageas Functions
 
-def derivative_of_eta_from_ValIIB8(delR,delLRL,R,RL,sigma_RL):
+def derivative_of_eta_from_ValIIB8(del_R,kl,pl,R):
+    RL = np.power(1 + del_R,1/3)*R
+    del_l_RL = inverse_of_approximate_collapse_alex(del_R)
+    sR = sigma_from_power_spectrum(kl,pl,R)
+    RL = np.power(1 + del_R,1/3)*R
+    if RL.shape == ():
+        sRL = sigma_from_power_spectrum(kl,pl,RL)
+    else:
+        sRL = np.array([sigma_from_power_spectrum(kl,pl,r) for r in RL])
     
     int1 = 1 / (2 * np.square(pi))
-    int2 = pk_class * np.square(k_class) * 2 * top_hat_filter_fourier(k_class*RL)
-    int3 = (((np.square(k_class*RL) - 3)*np.sin(k_class*RL)) + (3*k_class*RL*np.cos(RL*k_class))) / (np.power(k_class*RL,3)*RL)
-    
+    int2 = pl * np.square(kl) * 2 * top_hat_filter_in_fourier_space(kl*RL)
+    int3 = (((np.square(kl*RL) - 3)*np.sin(kl*RL)) + (3*kl*RL*np.cos(RL*kl))) / (np.power(kl*RL,3)*RL)
     int_all = int1*np.multiply(int2,int3)
-    
-    Integration = integrate.simpson(int_all, k_class)
+    Integration = integrate.simpson(int_all, kl)
     
     # factors divided as clumps from above equation:
-    a1 = 1 / np.square(sigma_RL) 
-    a2 = p_invF(delR) * sigma_RL
-    a3 = (R * delLRL) / (2 * sigma_RL * np.power(1 + delR,2/3))
+    a1 = 1 / np.square(sRL) 
+    a2 = derivative_of_inverse_of_approximate_collapse_alex(del_R) * sRL
+    a3 = (R * del_l_RL) / (2 * sRL * np.power(1 + del_R,2/3))
     a4 = Integration
-    
     return a1*(a2 - (a3*a4))
 
-def high_density_tail_ValIIB9(x,R):
-    
-    delLRL = inverse_of_approximate_collapse_alex(x)
-    
-    sigma_R  = sigma_from_linear_pk(R)
-    
-    RL = np.power(1 + x,1/3)*R
+def high_density_tail_ValIIB9(del_R,kl,pl,R):
+    del_l_RL = inverse_of_approximate_collapse_alex(del_R)
+
+    sR = sigma_from_power_spectrum(kl,pl,R)
+    RL = np.power(1 + del_R,1/3)*R
     if RL.shape == ():
-        sigma_RL = sigma_from_linear_pk(RL)
+        sRL = sigma_from_power_spectrum(kl,pl,RL)
     else:
-        sigma_RL = np.array([sigma_from_linear_pk(r) for r in RL])
+        sRL = np.array([sigma_from_power_spectrum(kl,pl,r) for r in RL])
     
     h1 = 1/np.sqrt(2*pi)
-    h2 = 1/(1+x)
-    h3 = derivative_of_eta_from_ValIIB8(x,delLRL,R,RL,sigma_RL)
-    h4 = np.exp(-np.square(delLRL) / (2*np.square(sigma_RL)))
+    h2 = 1/(1+del_R)
+    h3 = np.array([derivative_of_eta_from_ValIIB8(d,kl,pl,R) for d in del_R])
+    h4 = np.exp(-np.square(del_l_RL) / (2*np.square(sRL)))
     return h1*h2*h3*h4
 
 ## Power Spectra
