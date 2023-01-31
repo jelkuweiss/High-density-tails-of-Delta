@@ -56,7 +56,7 @@ def derivative_of_eta_from_ValIIB8(del_R, kl, pl, R):
     int1 = 1 / (2 * np.square(pi))
     int2 = pl * np.square(kl) * 2 * top_hat_filter_in_fourier_space(kl * RL)
     int3 = (((np.square(kl * RL) - 3) * np.sin(kl * RL)) + (3 * kl * RL * np.cos(RL * kl))) / (
-                np.power(kl * RL, 3) * RL)
+            np.power(kl * RL, 3) * RL)
     int_all = int1 * np.multiply(int2, int3)
     Integration = integrate.simpson(int_all, kl)
 
@@ -163,11 +163,17 @@ def del_variance(k, pk, R):
     return integrate.simpson(integrand, x=k)
 
 
-def CGF_at_the_saddle(delta_L, kl, pl, R):
+def CGF_at_the_saddle(kl, pl, R, delta_min=-1.5, delta_max=1.4):
     # Expression of the CGF equated at the saddle point of the action (equation [5] of https://arxiv.org/abs/1912.06621)
-    cgf = []
-    Lam = []
-    for delta in delta_L:
+    Lam = []  # lambda values
+    cgf = []  # CGF values
+
+    # The actual delta values that we return
+    delta_L, delta_step = np.linspace(delta_min, delta_max, num=2 ** 10, retstep=True)
+    # The extended delta values needed to calculate the derivatives of the CGF
+    delta_L_buffed = np.linspace(delta_min - (2*delta_step), delta_max + (2*delta_step), num=(2 ** 10) + 4)
+
+    for delta in delta_L_buffed:
         Rl = np.power(1 + approximate_collapse_alex(delta), 1 / 3) * R
         # collapses
         F = approximate_collapse_alex(delta)
@@ -191,4 +197,14 @@ def CGF_at_the_saddle(delta_L, kl, pl, R):
         Lam += [lam]
         cgf += [+ (lam * F) - (j * delta) + (0.5 * np.square(j) * sRl2)]
 
-    return np.array(Lam), np.array(cgf)
+    cgf_p = np.diff(cgf) / np.diff(Lam)
+    lam_p = 0.5 * (Lam[1:] + Lam[:-1])
+    cgf_pp = np.diff(cgf_p) / np.diff(lam_p)
+    lam_pp = 0.5 * (lam_p[1:] + lam_p[:-1])
+
+    Lam_final = np.interp(delta_L, delta_L_buffed, Lam)
+    cgf_final = np.interp(Lam_final, Lam, cgf)
+    cgfp_final = np.interp(Lam_final, lam_p, cgf_p)
+    cgfpp_final = np.interp(Lam_final, lam_pp, cgf_pp)
+
+    return delta_L, Lam_final, cgf_final, cgfp_final, cgfpp_final
