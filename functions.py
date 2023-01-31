@@ -197,6 +197,7 @@ def CGF_at_the_saddle(kl, pl, R, delta_min=-1.5, delta_max=1.4):
         Lam += [lam]
         cgf += [+ (lam * F) - (j * delta) + (0.5 * np.square(j) * sRl2)]
 
+    Lam = np.array(Lam)
     cgf_p = np.diff(cgf) / np.diff(Lam)
     lam_p = 0.5 * (Lam[1:] + Lam[:-1])
     cgf_pp = np.diff(cgf_p) / np.diff(lam_p)
