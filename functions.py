@@ -194,11 +194,11 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
 
         Lam += [lam]
         cgf += [+ (lam * F) - (j * delta) + (0.5 * np.square(j) * sRl2)]
-
     Lam = np.array(Lam)
+    cgf = np.array(cgf)
+
     var_ratio = np.square(sigma_from_power_spectrum(kl, pl, R)) / np.square(
         sigma_from_power_spectrum(knl, pnl, R))
-
     cgf = cgf * var_ratio
     Lam = Lam * var_ratio
 
