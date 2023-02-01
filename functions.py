@@ -163,15 +163,15 @@ def del_variance(k, pk, R):
     return integrate.simpson(integrand, x=k)
 
 
-def CGF_at_the_saddle(kl, pl, R, delta_min=-1.5, delta_max=1.4):
+def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
     # Expression of the CGF equated at the saddle point of the action (equation [5] of https://arxiv.org/abs/1912.06621)
     Lam = []  # lambda values
     cgf = []  # CGF values
 
     # The actual delta values that we return
-    delta_L, delta_step = np.linspace(delta_min, delta_max, num=2 ** 10, retstep=True)
+    delta_L, delta_step = np.linspace(delta_min, delta_max, num=2 ** 12, retstep=True)
     # The extended delta values needed to calculate the derivatives of the CGF
-    delta_L_buffed = np.linspace(delta_min - (2*delta_step), delta_max + (2*delta_step), num=(2 ** 10) + 4)
+    delta_L_buffed = np.linspace(delta_min - (2 * delta_step), delta_max + (2 * delta_step), num=(2 ** 10) + 4)
 
     for delta in delta_L_buffed:
         Rl = np.power(1 + approximate_collapse_alex(delta), 1 / 3) * R
@@ -179,10 +179,8 @@ def CGF_at_the_saddle(kl, pl, R, delta_min=-1.5, delta_max=1.4):
         F = approximate_collapse_alex(delta)
         Fp = derivative_of_approximate_collapse_alex(delta)
         # sigmas
-        sR = sigma_from_power_spectrum(kl, pl, R)
         sRl = sigma_from_power_spectrum(kl, pl, Rl)
         # sigma squares
-        sR2 = np.square(sR)
         sRl2 = np.square(sRl)
 
         # jstar as a function of detla
@@ -198,6 +196,12 @@ def CGF_at_the_saddle(kl, pl, R, delta_min=-1.5, delta_max=1.4):
         cgf += [+ (lam * F) - (j * delta) + (0.5 * np.square(j) * sRl2)]
 
     Lam = np.array(Lam)
+    var_ratio = np.square(sigma_from_power_spectrum(kl, pl, R)) / np.square(
+        sigma_from_power_spectrum(knl, pnl, R))
+
+    cgf = cgf * var_ratio
+    Lam = Lam * var_ratio
+
     cgf_p = np.diff(cgf) / np.diff(Lam)
     lam_p = 0.5 * (Lam[1:] + Lam[:-1])
     cgf_pp = np.diff(cgf_p) / np.diff(lam_p)
