@@ -207,9 +207,17 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
     cgf_pp = np.diff(cgf_p) / np.diff(lam_p)
     lam_pp = 0.5 * (lam_p[1:] + lam_p[:-1])
 
+    # All the needed values interpolated at the exact same lambda values
     Lam_final = np.interp(delta_L, delta_L_buffed, Lam)
     cgf_final = np.interp(Lam_final, Lam, cgf)
     cgfp_final = np.interp(Lam_final, lam_p, cgf_p)
     cgfpp_final = np.interp(Lam_final, lam_pp, cgf_pp)
 
-    return delta_L, Lam_final, cgf_final, cgfp_final, cgfpp_final
+    # Now we evaluate the values of the Psi function
+    Psi = Lam_final*cgfp_final - cgf_final
+    Psip = Lam_final
+    Psipp = np.interp(cgfp_final, 0.5 * (cgfp_final[1:] + cgfp_final[:-1]), np.diff(Psip))
+    Psippp = np.interp(cgfp_final, 0.5 * (cgfp_final[1:] + cgfp_final[:-1]), np.diff(Psipp))
+    Psi_final = np.array([Psi, Psip, Psipp, Psippp])
+
+    return delta_L, Lam_final, cgf_final, cgfp_final, cgfpp_final, Psi_final
