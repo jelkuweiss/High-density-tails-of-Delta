@@ -171,7 +171,7 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
     # The actual delta values that we return
     delta_L, delta_step = np.linspace(delta_min, delta_max, num=2 ** 12, retstep=True)
     # The extended delta values needed to calculate the derivatives of the CGF
-    delta_L_buffed = np.linspace(delta_min - (2 * delta_step), delta_max + (2 * delta_step), num=(2 ** 10) + 4)
+    delta_L_buffed = np.linspace(delta_min - (10 * delta_step), delta_max + (10 * delta_step), num=(2 ** 10) + 20)
 
     for delta in delta_L_buffed:
         Rl = np.power(1 + approximate_collapse_alex(delta), 1 / 3) * R
@@ -199,6 +199,7 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
 
     var_ratio = np.square(sigma_from_power_spectrum(kl, pl, R)) / np.square(
         sigma_from_power_spectrum(knl, pnl, R))
+    # Rescaling both the cgf values and the lambda values to get the RCGF
     cgf = cgf * var_ratio
     Lam = Lam * var_ratio
 
@@ -207,17 +208,40 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
     cgf_pp = np.diff(cgf_p) / np.diff(lam_p)
     lam_pp = 0.5 * (lam_p[1:] + lam_p[:-1])
 
+    # delta values for which we have all derivatives
+    delta_L_semiUnbuffed = np.linspace(delta_min - (9 * delta_step), delta_max + (9 * delta_step), num=(2 ** 10) + 18)
+    Lam_new = np.interp(delta_L_semiUnbuffed, delta_L_buffed, Lam)
+    cgf = np.interp(Lam_new, Lam, cgf)
+    cgf_p = np.interp(Lam_new, lam_p, cgf_p)
+    cgf_pp = np.interp(Lam_new, lam_pp, cgf_pp)
+
+    # Now we evaluate the values of the Psi function
+    rho_new = cgf_p
+    Psi = Lam_new * rho_new - cgf
+    Psi_1 = Lam_new
+    Psi_2 = np.diff(Psi_1) / np.diff(rho_new)
+    rho_2 = 0.5 * (rho_new[1:] + rho_new[:-1])
+    Psi_3 = np.diff(Psi_2) / np.diff(rho_2)
+    rho_3 = 0.5 * (rho_2[1:] + rho_2[:-1])
+    Psi_4 = np.diff(Psi_3) / np.diff(rho_3)
+    rho_4 = 0.5 * (rho_3[1:] + rho_3[:-1])
+    Psi_5 = np.diff(Psi_4) / np.diff(rho_4)
+    rho_5 = 0.5 * (rho_4[1:] + rho_4[:-1])
+
     # All the needed values interpolated at the exact same lambda values
     Lam_final = np.interp(delta_L, delta_L_buffed, Lam)
     cgf_final = np.interp(Lam_final, Lam, cgf)
     cgfp_final = np.interp(Lam_final, lam_p, cgf_p)
     cgfpp_final = np.interp(Lam_final, lam_pp, cgf_pp)
 
-    # Now we evaluate the values of the Psi function
-    Psi = Lam_final*cgfp_final - cgf_final
-    Psip = Lam_final
-    Psipp = np.interp(cgfp_final, 0.5 * (cgfp_final[1:] + cgfp_final[:-1]), np.diff(Psip))
-    Psippp = np.interp(cgfp_final, 0.5 * (cgfp_final[1:] + cgfp_final[:-1]), np.diff(Psipp))
-    Psi_final = np.array([Psi, Psip, Psipp, Psippp])
+    # and now to reduce the psi's too
+    rho_final = cgfp_final
+    Psi = np.interp(rho_final, rho_new, Psi)
+    Psi_1 = np.interp(rho_final, rho_1, Psi_1)
+    Psi_2 = np.interp(rho_final, rho_2, Psi_2)
+    Psi_3 = np.interp(rho_final, rho_3, Psi_3)
+    Psi_4 = np.interp(rho_final, rho_4, Psi_4)
+    Psi_5 = np.interp(rho_final, rho_5, Psi_5)
+    Psi_final = np.array([Psi, Psi_1, Psi_2, Psi_3, Psi_4, Psi_5])
 
     return delta_L, Lam_final, cgf_final, cgfp_final, cgfpp_final, Psi_final
