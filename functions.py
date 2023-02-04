@@ -230,7 +230,7 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
 
     # All the needed values interpolated at the exact same lambda values
     Lam_final = np.interp(delta_L, delta_L_buffed, Lam)
-    cgf_final = np.interp(Lam_final, Lam, cgf)
+    cgf_final = np.interp(Lam_final, Lam_new, cgf)
     cgfp_final = np.interp(Lam_final, lam_p, cgf_p)
     cgfpp_final = np.interp(Lam_final, lam_pp, cgf_pp)
 
