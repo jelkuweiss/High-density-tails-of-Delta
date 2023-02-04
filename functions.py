@@ -237,7 +237,7 @@ def RCGF_at_the_saddle(kl, pl, knl, pnl, R, delta_min=-1.5, delta_max=1.4):
     # and now to reduce the psi's too
     rho_final = cgfp_final
     Psi = np.interp(rho_final, rho_new, Psi)
-    Psi_1 = np.interp(rho_final, rho_1, Psi_1)
+    Psi_1 = np.interp(rho_final, rho_new, Psi_1)
     Psi_2 = np.interp(rho_final, rho_2, Psi_2)
     Psi_3 = np.interp(rho_final, rho_3, Psi_3)
     Psi_4 = np.interp(rho_final, rho_4, Psi_4)
